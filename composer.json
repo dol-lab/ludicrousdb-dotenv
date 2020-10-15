@@ -1,0 +1,20 @@
+{
+	"name": "dol-lab/ludicrousdb-dotenv",
+	"description": "Use a dotenv-file to configure ludicrousdb and keep environment seperate from code.",
+	"homepage": "https://github.com/dol-lab/ludicrousdb-dotenv",
+	"type": "wordpress-muplugin",
+	"license": "GPL-2.0-or-later",
+	"authors": [
+		{
+			"name": "Vitus Schuhwerk",
+			"email": "vitus.schuhwerk@gmail.com"
+		}
+	],
+	"support": {
+		"issues": "https://github.com/dol-lab/ludicrousdb-dotenv/issues",
+		"source": "https://github.com/dol-lab/ludicrousdb-dotenv"
+	},
+	"require": {
+		"oscarotero/env": "^1.1.0"
+	}
+}
