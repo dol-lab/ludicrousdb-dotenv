@@ -83,7 +83,8 @@ class Ludicrousdb_Dotenv_Cli extends WP_CLI_Command {
 			/**
 			 * To cath errors from both pipes, we us a subshell.
 			 */
-			$output = shell_exec( "#!/usr/bin/bash\n sh -c '" . $cmd . "' 2>&1" );
+			$output = shell_exec( "sh -c '" . $cmd . "' 2>&1" );
+			WP_CLI::log( $cmd );
 			if ( ! empty( trim( $output ) ) ) {
 				$errors[] = array(
 					'table' => $table_name,
@@ -151,43 +152,39 @@ class Ludicrousdb_Dotenv_Cli extends WP_CLI_Command {
 			 * Create the db-tables
 			 */
 			$sh = $mysql_base . "'{$q['sql_create']}'" . $sh_echo_output;
-			$output = shell_exec( $sh ); // output is empty on success.
-			// WP_CLI::log( $sh . "\n" . $output );
 
-			if ( trim( $output ) ) {
-				$errors[] = array(
-					'sql' => $q['sql_create'],
-					'sh' => $sh,
-					'error' => $output,
-				);
-			} else {
-				WP_CLI::success( 'Successfully created database: ' . $q['sql_create'] );
-			}
-
+			$errors[] = $this->execute( $sh, $q['sql_create'] );
 			/**
 			 * Give the current user access to the tables (this is not --db_user).
 			 */
 			$sh = $mysql_base . "'{$q['sql_privilege']}'" . $sh_echo_output;
-			WP_CLI::log( $sh );
-			$output = shell_exec( $sh ); // output is empty on success.
-			if ( trim( $output ) ) {
-				$errors[] = array(
-					'sql' => $q['sql_permissions'],
-					'sh' => $sh,
-					'error' => $output,
-				);
-			} else {
-				WP_CLI::success( 'Successfully granted privileges.' . $q['sql_create'] );
-			}
+			$errors[] = $this->execute( $sh, $q['sql_privilege'] );
+
 		}
 
-		if ( ! empty( $errors ) ) {
+		if ( ! empty( array_filter( $errors, 'count' ) ) ) {
 			WP_CLI::error( 'You had errors with some queries.' . print_r( $errors, true ), true );
 			$this->permission_notice();
-		}
+		} else {
+			WP_CLI::success( "Successfully created database tables\n\n" );
 
-		WP_CLI::log( $output );
+		}
 		// $output = shell_exec( "wp db --dbuser=root --dbpass=devpw query \"$create_db_query\" --allow-root" );
+	}
+
+	private function execute( string $sh, string $sql ) {
+		WP_CLI::log( "Executing: $sh" );
+		$output = shell_exec( $sh ); // output is empty on success.
+		if ( trim( $output ) ) {
+			return array(
+				'sql' => $sql,
+				'sh' => $sh,
+				'error' => $output,
+			);
+			WP_CLI::error( 'An error occured executing: ' . $sql, false );
+		} else {
+			WP_CLI::success( 'Successfully executed: ' . $sql );
+		}
 	}
 
 	private function unprefix_array_keys( string $prefix, array $array ) {

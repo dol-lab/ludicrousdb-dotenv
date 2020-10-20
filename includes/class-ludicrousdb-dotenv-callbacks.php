@@ -47,7 +47,7 @@ class Ludicrousdb_Dotenv_Callbacks {
 		global $wpdb;
 
 		$wpdb->add_callback(
-			function( $query, LudicrousDB $wpdb ) use ( $dataset_name, $dataset_count ) {
+			function( $query, $wpdb ) use ( $dataset_name, $dataset_count ) {
 				$blog_id = $this->ludic_dot->table_name_to_id( $wpdb->table, $wpdb->base_prefix );
 				if ( false === $blog_id ) {
 					return;
