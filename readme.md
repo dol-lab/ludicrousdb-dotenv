@@ -6,7 +6,7 @@
 
 By default WordPress stores is database-configuration in a PHP-file called wp-config.php.
 
-To avoid mixing code with config (like a proper [12factor-app](https://12factor.net/)) we use a seperate file ([.env or dotenv](https://github.com/vlucas/phpdotenv)) to split code from configuration. This approach is used also by LEMP Stacks like [Roots Trellis](https://github.com/roots/trellis).
+To avoid mixing code with config (like a proper [12factor-app](https://12factor.net/)) we use a separate file ([.env or dotenv](https://github.com/vlucas/phpdotenv)) to split code from configuration. This approach is used also by LEMP Stacks like [Roots Trellis](https://github.com/roots/trellis).
 
 This repository uses an .env file to configure LudicrousDB in a simple (and quite basic) manner.
 
@@ -16,6 +16,7 @@ This repository uses an .env file to configure LudicrousDB in a simple (and quit
 - ❗ This is a very basic implementation. It only supports a small subset of the features LudicrousDB offers. PRs are welcome :)
 - ❗ Use at your own risk. Create backups before you use this!
 - ❗ Sadly [WP-CLI](https://wp-cli.org/) does not properly support sharding with LudicrousDB. It only lists tables from the first 'global' shard with `--all-tables`. When you currently `wp db export --all-tables` you only tables from your primary shard.
+- ❗ Does not support replication (yet).
 
 # Setup
 
@@ -72,7 +73,7 @@ DB_BLOG_127_WRITE = 0
 Values are inherited from the previous entry (from the same 'dataset')
 
 ## Example 2
-I just want to store my blogs in a different database, so they are seperated from the global ones.
+I just want to store my blogs in a different database, so they are separated from the global ones.
 ```bash
 # .env
 # give me a single shard for all blogs.
