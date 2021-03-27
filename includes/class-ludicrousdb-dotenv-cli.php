@@ -38,7 +38,7 @@ class Ludicrousdb_Dotenv_Cli extends WP_CLI_Command {
 		WP_CLI::confirm(
 			"This is experimental and works just once, moving blog tables to their shards. \n" .
 			"This overwrites tables if the already exist. \n" .
-			'Make sure mysqldump and mysql are installed. Are you sure?'
+			'Make sure mysqldump and mysql are installed. Are you sure you want to continue?'
 		);
 
 		global $wpdb;
@@ -66,12 +66,11 @@ class Ludicrousdb_Dotenv_Cli extends WP_CLI_Command {
 
 			$db_name_dest = $this->ludic_dot->get_db_name( 'blog', $id );
 			$srv_dest = $this->get_writeable_servers( $db_name_dest );
-			$srv_dest = wp_parse_args( $my_args, $srv_dest );
-
 			if ( is_wp_error( $srv_dest ) ) {
-				WP_CLI::error( $srv_dest->get_error_message(), false );
+				WP_CLI::error( "Skipping table $table_name : " . $srv_dest->get_error_message(), false );
 				continue;
 			}
+			$srv_dest = wp_parse_args( $my_args, $srv_dest );
 
 			/**
 			 * This is a complicated method, because it needs to be able to copy tables across different hosts.
@@ -187,6 +186,13 @@ class Ludicrousdb_Dotenv_Cli extends WP_CLI_Command {
 		}
 	}
 
+	/**
+	 * Remove a prefix from array keys.
+	 * 
+	 * @param string $prefix 
+	 * @param array  $array 
+	 * @return array|false 
+	 */
 	private function unprefix_array_keys( string $prefix, array $array ) {
 		return array_combine(
 			array_map(
@@ -206,6 +212,41 @@ class Ludicrousdb_Dotenv_Cli extends WP_CLI_Command {
 			'sql_create' => "CREATE DATABASE {$db_config['name']} DEFAULT CHARACTER SET {$wpdb->charset} COLLATE {$wpdb->collate};",
 			'sql_privilege' => "GRANT ALL ON {$db_config['name']}.* TO {$db_config['user']}@{$db_config['host']}; FLUSH PRIVILEGES;",
 		);
+	}
+
+	/**
+	 * @todo This is work in progress!
+	 * 
+	 * @todo: add destination file path argument.
+	 */
+	public function export_blogs( $args, $assoc_args ) {
+
+		global $wpdb;
+
+		$blog_ids = explode( ',', $args );
+
+		if ( ! is_numeric( implode( '', $blog_ids ) ) || empty( $blog_ids ) ) {
+			WP_CLI::error( 'Specify blog ids, comma-separated.' );
+		}
+
+		$srv_orig = $this->get_writeable_servers( 'global' );
+
+		if ( is_wp_error( $srv_orig ) ) {
+			WP_CLI::error( $srv_orig->get_error_message() );
+		}
+
+		$shards = array();
+
+		foreach ( $blog_ids as $blog_id ) {
+			$db_name_dest = $this->ludic_dot->get_db_name( 'blog', $blog_id );
+			$srv_dest = $this->get_writeable_servers( $db_name_dest ); // @todo can also be readable...
+			// @todo: group by shards
+
+		}
+
+		// iterate over the shards, collect tables
+		// make multiple mysqldump to same file:
+		// https://stackoverflow.com/questions/8228116/mysqldump-tables-from-different-databases
 	}
 
 	private function export_all_shards() {
